@@ -6,22 +6,22 @@
     "Parameters" : {
         "KeyName" : {
             "Description" : "Name of an existing EC2 KeyPair to enable SSH access",
-            "Type" : "String" 
+            "Type" : "String"
         },
-        
+
         "ArbiterInstanceType" : {
-            "Type" : "String", 
-            "Default" : "t1.micro", 
+            "Type" : "String",
+            "Default" : "t1.micro",
             "AllowedValues" : [ "t1.micro", "m1.small", "m1.medium", "m1.large" ],
             "Description" : "Arbiter EC2 instance type (e.g. t1.micro, m1.small,..)"
         },
-        
+
         "ReplicaSetName" : {
             "Description" : "Name for the MongoDB replica set",
             "Type" : "String",
             "Default" : "MyReplicaSet"
         },
-        
+
         "AccessKeyId" : {
             "Description" : "Access Key ID",
             "Type" : "String"
@@ -40,7 +40,7 @@
 
     "Mappings" : {
         "InstanceTypeArch" : {
-        	"t1.micro"    : { "Arch" : "64" },
+          "t1.micro"    : { "Arch" : "64" },
             "m1.small"    : { "Arch" : "64" },
             "m1.medium"   : { "Arch" : "64" },
             "m1.large"    : { "Arch" : "64" },
@@ -54,13 +54,13 @@
         },
 
         "RegionImageZone" : {
-            "us-east-1"      : { "64" : "ami-e565ba8c", "64HVM" : "ami-e965ba80" },
-            "us-west-2"      : { "64" : "ami-3ac64a0a", "64HVM" : "NOT_YET_SUPPORTED" },
-            "us-west-1"      : { "64" : "ami-e78cd4a2", "64HVM" : "NOT_YET_SUPPORTED" },
-            "eu-west-1"      : { "64" : "ami-f9231b8d", "64HVM" : "NOT_YET_SUPPORTED" },
-            "ap-southeast-1" : { "64" : "ami-be3374ec", "64HVM" : "NOT_YET_SUPPORTED" },
-            "ap-northeast-1" : { "64" : "ami-e47acbe5", "64HVM" : "NOT_YET_SUPPORTED" },
-            "sa-east-1"      : { "64" : "ami-a6855bbb", "64HVM" : "NOT_YET_SUPPORTED" }
+            "us-east-1"      : { "64" : "ami-a29943cb", "64HVM" : "ami-e965ba80" },
+            "us-west-2"      : { "64" : "ami-20800c10", "64HVM" : "NOT_YET_SUPPORTED" },
+            "us-west-1"      : { "64" : "ami-87712ac2", "64HVM" : "NOT_YET_SUPPORTED" },
+            "eu-west-1"      : { "64" : "ami-e1e8d395", "64HVM" : "NOT_YET_SUPPORTED" },
+            "ap-southeast-1" : { "64" : "ami-a4ca8df6", "64HVM" : "NOT_YET_SUPPORTED" },
+            "ap-northeast-1" : { "64" : "ami-60c77761", "64HVM" : "NOT_YET_SUPPORTED" },
+            "sa-east-1"      : { "64" : "ami-8cd80691", "64HVM" : "NOT_YET_SUPPORTED" }
         }
     },
 
@@ -71,18 +71,16 @@
                 "AWS::CloudFormation::Init" : {
                     "config" : {
                         "packages" : {
-                            "yum" : {
+                            "apt" : {
                                 "mdadm" : [],
-                                "sysstat" : []
+                                "sysstat" : [],
+                                "python-setuptools" : []
                             }
                         },
                         "files" : {
-                            "/etc/yum.repos.d/10gen.repo" : {
+                            "/etc/apt/sources.list.d/10gen.list" : {
                                 "content" : { "Fn::Join" : ["", [
-                                    "[10gen]\n",
-                                    "name=10gen Repository\n",
-                                    "baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64\n",
-                                    "gpgcheck=0\n"
+                                    "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen\n"
                                 ] ] },
                                 "mode" : "000644",
                                 "owner" : "root",
@@ -96,16 +94,16 @@
             "Properties" : {
                 "InstanceType" : { "Ref" : "ArbiterInstanceType" },
                 "Tags" : [
-          			{"Key" : "Name", "Value" : "MongoArbiter" },
-          			{"Key" : "Owner", "Value" : "IntegratingStuff" }
-        		],
-                "ImageId" : { "Fn::FindInMap" : [ "RegionImageZone", { "Ref" : "AWS::Region" }, 
+                {"Key" : "Name", "Value" : "MongoArbiter" },
+                {"Key" : "Owner", "Value" : "IntegratingStuff" }
+            ],
+                "ImageId" : { "Fn::FindInMap" : [ "RegionImageZone", { "Ref" : "AWS::Region" },
                     { "Fn::FindInMap" : [ "InstanceTypeArch", { "Ref" : "ArbiterInstanceType" }, "Arch" ] } ] },
                 "SecurityGroups" : [ { "Ref" : "SecurityGroupName" } ],
                 "KeyName" : { "Ref" : "KeyName" },
                 "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
                     "#!/bin/bash\n",
-                    "yum update -y aws-cfn-bootstrap\n",
+                    "easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
 
                     "## Error reporting helper function\n",
                     "function error_exit\n",
@@ -120,15 +118,16 @@
                     "   --secret-key ", {"Ref": "SecretAccessKey" },
                     "   --region ", { "Ref" : "AWS::Region" }, " > /tmp/cfn-init.log 2>&1 || error_exit $(</tmp/cfn-init.log)\n",
 
-                    "yum -y install mongo-10gen-server > /tmp/yum-mongo.log 2>&1\n",
-                    
+                    "apt-get install -y mongodb-10gen > /tmp/yum-mongo.log 2>&1\n",
+                    "service mongodb stop\n"
+
                     "echo '/mnt/var/lib/mongodb /var/lib/mongodb   none bind' | tee -a /etc/fstab\n",
                     "echo '/mnt/var/log/mongodb /var/log/mongodb   none bind' | tee -a /etc/fstab\n",
-                    
-                    "echo 'replSet=", { "Ref" : "ReplicaSetName" } ,"' | tee -a /etc/mongod.conf\n",
+
+                    "echo 'replSet=", { "Ref" : "ReplicaSetName" } ,"' | tee -a /etc/mongodb.conf\n",
 
                     "## Start mongod\n",
-                    "/etc/init.d/mongod start > /tmp/mongod-start.log 2>&1\n",
+                    "service mongodb start > /tmp/mongod-start.log 2>&1\n",
 
                     "## CloudFormation signal that setup is complete\n",
                     "/opt/aws/bin/cfn-signal -e 0 -r \"MongoPrimary setup complete\" '", { "Ref" : "WaitHandleMongoArbiter" }, "'\n"

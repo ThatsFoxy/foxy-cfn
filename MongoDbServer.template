@@ -6,12 +6,12 @@
     "Parameters" : {
         "KeyName" : {
             "Description" : "Name of an existing EC2 KeyPair to enable SSH access",
-            "Type" : "String" 
+            "Type" : "String"
         },
 
         "InstanceType" : {
-            "Type" : "String", 
-            "Default" : "m1.large", 
+            "Type" : "String",
+            "Default" : "m1.large",
             "AllowedValues" : [ "m1.small", "m1.medium", "m1.large", "m1.xlarge", "m2.xlarge", "m2.2xlarge", "m2.4xlarge", "c1.xlarge", "cc1.4xlarge" ],
             "Description" : "EC2 instance type (e.g. m1.large, m1.xlarge, m2.xlarge)"
         },
@@ -21,13 +21,13 @@
             "Type" : "Number",
             "Default" : "10"
         },
-        
+
         "ReplicaSetName" : {
             "Description" : "Name for the MongoDB replica set",
             "Type" : "String",
             "Default" : "MyReplicaSet"
         },
-        
+
         "AccessKeyId" : {
             "Description" : "Access Key ID",
             "Type" : "String"
@@ -46,7 +46,7 @@
 
     "Mappings" : {
         "InstanceTypeArch" : {
-        	"t1.micro"    : { "Arch" : "64" },
+          "t1.micro"    : { "Arch" : "64" },
             "m1.small"    : { "Arch" : "64" },
             "m1.medium"   : { "Arch" : "64" },
             "m1.large"    : { "Arch" : "64" },
@@ -60,13 +60,13 @@
         },
 
         "RegionImageZone" : {
-            "us-east-1"      : { "64" : "ami-e565ba8c", "64HVM" : "ami-e965ba80" },
-            "us-west-2"      : { "64" : "ami-3ac64a0a", "64HVM" : "NOT_YET_SUPPORTED" },
-            "us-west-1"      : { "64" : "ami-e78cd4a2", "64HVM" : "NOT_YET_SUPPORTED" },
-            "eu-west-1"      : { "64" : "ami-f9231b8d", "64HVM" : "NOT_YET_SUPPORTED" },
-            "ap-southeast-1" : { "64" : "ami-be3374ec", "64HVM" : "NOT_YET_SUPPORTED" },
-            "ap-northeast-1" : { "64" : "ami-e47acbe5", "64HVM" : "NOT_YET_SUPPORTED" },
-            "sa-east-1"      : { "64" : "ami-a6855bbb", "64HVM" : "NOT_YET_SUPPORTED" }
+            "us-east-1"      : { "64" : "ami-a29943cb", "64HVM" : "ami-e965ba80" },
+            "us-west-2"      : { "64" : "ami-20800c10", "64HVM" : "NOT_YET_SUPPORTED" },
+            "us-west-1"      : { "64" : "ami-87712ac2", "64HVM" : "NOT_YET_SUPPORTED" },
+            "eu-west-1"      : { "64" : "ami-e1e8d395", "64HVM" : "NOT_YET_SUPPORTED" },
+            "ap-southeast-1" : { "64" : "ami-a4ca8df6", "64HVM" : "NOT_YET_SUPPORTED" },
+            "ap-northeast-1" : { "64" : "ami-60c77761", "64HVM" : "NOT_YET_SUPPORTED" },
+            "sa-east-1"      : { "64" : "ami-8cd80691", "64HVM" : "NOT_YET_SUPPORTED" }
         }
     },
 
@@ -78,18 +78,16 @@
                 "AWS::CloudFormation::Init" : {
                     "config" : {
                         "packages" : {
-                            "yum" : {
+                            "apt" : {
                                 "mdadm" : [],
-                                "sysstat" : []
+                                "sysstat" : [],
+                                "python-setuptools" : []
                             }
                         },
                         "files" : {
-                            "/etc/yum.repos.d/10gen.repo" : {
+                            "/etc/apt/sources.list.d/10gen.list" : {
                                 "content" : { "Fn::Join" : ["", [
-                                    "[10gen]\n",
-                                    "name=10gen Repository\n",
-                                    "baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64\n",
-                                    "gpgcheck=0\n"
+                                    "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen\n"
                                 ] ] },
                                 "mode" : "000644",
                                 "owner" : "root",
@@ -102,17 +100,17 @@
 
             "Properties" : {
                 "InstanceType" : { "Ref" : "InstanceType" },
-                "ImageId" : { "Fn::FindInMap" : [ "RegionImageZone", { "Ref" : "AWS::Region" }, 
+                "ImageId" : { "Fn::FindInMap" : [ "RegionImageZone", { "Ref" : "AWS::Region" },
                     { "Fn::FindInMap" : [ "InstanceTypeArch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
                 "SecurityGroups" : [ { "Ref" : "SecurityGroupName" } ],
                 "KeyName" : { "Ref" : "KeyName" },
                 "Tags" : [
-          			{"Key" : "Name", "Value" : "MongoSecondary" },
-          			{"Key" : "Owner", "Value" : "IntegratingStuff" }
-        		],
+                {"Key" : "Name", "Value" : "MongoSecondary" },
+                {"Key" : "Owner", "Value" : "IntegratingStuff" }
+            ],
                 "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
                     "#!/bin/bash\n",
-                    "yum update -y aws-cfn-bootstrap\n",
+                    "easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
 
                     "## Error reporting helper function\n",
                     "function error_exit\n",
@@ -137,7 +135,8 @@
                     "while [ ! -e /dev/sdh7 ]; do echo waiting for /dev/sdh7 to attach; sleep 10; done\n",
                     "while [ ! -e /dev/sdh8 ]; do echo waiting for /dev/sdh8 to attach; sleep 10; done\n",
 
-                    "yum -y install mongo-10gen-server > /tmp/yum-mongo.log 2>&1\n",
+                    "apt-get install -y mongodb-10gen > /tmp/yum-mongo.log 2>&1\n",
+                    "service mongodb stop\n"
 
                     "## Create RAID10 and persist configuration\n",
                     "mdadm --verbose --create /dev/md0 --level=10 --chunk=256 --raid-devices=8 /dev/sdh1 /dev/sdh2 /dev/sdh3 /dev/sdh4 /dev/sdh5 /dev/sdh6 /dev/sdh7 /dev/sdh8 > /tmp/mdadm.log 2>&1\n",
@@ -174,26 +173,26 @@
                     "echo '/dev/vg0/data /data ext4 defaults,auto,noatime,nodiratime,noexec 0 0' | tee -a /etc/fstab\n",
                     "echo '/dev/vg0/log /log ext4 defaults,auto,noatime,nodiratime,noexec 0 0' | tee -a /etc/fstab\n",
                     "echo '/dev/vg0/journal /journal ext4 defaults,auto,noatime,nodiratime,noexec 0 0' | tee -a /etc/fstab\n",
-                    
+
                     "## Raise file descriptor limits\n",
                     "echo '* hard nofile 100000' | tee -a /etc/security/limits.conf\n",
                     "echo '* soft nofile 100000' | tee -a /etc/security/limits.conf\n",
-                    
+
                     "ulimit -n 100000\n",
-                    
+
                     "mount /data > /tmp/mount1.log 2>&1\n",
                     "mount /log > /tmp/mount2.log 2>&1\n",
                     "mount /journal > /tmp/mount3.log 2>&1\n",
 
                     "ln -s /journal /data/journal\n",
 
-                    "chown -R mongod:mongod /data > /tmp/chown1.log 2>&1\n",
-                    "chown -R mongod:mongod /log > /tmp/chown2.log 2>&1\n",
-                    "chown -R mongod:mongod /journal > /tmp/chown3.log 2>&1\n",
+                    "chown -R mongodb:mongodb /data > /tmp/chown1.log 2>&1\n",
+                    "chown -R mongodb:mongodb /log > /tmp/chown2.log 2>&1\n",
+                    "chown -R mongodb:mongodb /journal > /tmp/chown3.log 2>&1\n",
 
                     "## Update mongod configuration\n",
-                    "cat <<EOF > /etc/mongod.conf\n",
-                    "logpath=/log/mongod.log\n",
+                    "cat <<EOF > /etc/mongodb.conf\n",
+                    "logpath=/log/mongodb.log\n",
                     "logappend=true\n",
                     "fork=true\n",
                     "dbpath=/data\n",
@@ -201,8 +200,8 @@
                     "replSet=", { "Ref" : "ReplicaSetName" } ,"\n",
                     "EOF\n",
 
-                    "## Start mongod\n",
-                    "/etc/init.d/mongod start > /tmp/mongod-start.log 2>&1\n",
+                    "## Start mongodb\n",
+                    "service mongodb start > /tmp/mongod-start.log 2>&1\n",
 
                     "## CloudFormation signal that setup is complete\n",
                     "/opt/aws/bin/cfn-signal -e 0 -r \"MongoSecondary setup complete\" '", { "Ref" : "WaitHandleMongoSecondary" }, "'\n"
@@ -241,7 +240,7 @@
                 "AvailabilityZone" : { "Fn::GetAtt" : [ "MongoSecondary", "AvailabilityZone" ]}
             }
         },
-        
+
         "MongoSecondaryVolume5" : {
             "Type" : "AWS::EC2::Volume",
             "Properties" : {
@@ -309,7 +308,7 @@
                 "Device" : "/dev/sdh4"
             }
         },
-        
+
         "MongoSecondaryVolumeMount5" : {
             "Type" : "AWS::EC2::VolumeAttachment",
             "Properties" : {
