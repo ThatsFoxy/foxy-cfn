@@ -119,7 +119,7 @@
                     "   --region ", { "Ref" : "AWS::Region" }, " > /tmp/cfn-init.log 2>&1 || error_exit $(</tmp/cfn-init.log)\n",
 
                     "apt-get install -y mongodb-10gen > /tmp/yum-mongo.log 2>&1\n",
-                    "service mongodb stop\n"
+                    "service mongodb stop\n",
 
                     "echo '/mnt/var/lib/mongodb /var/lib/mongodb   none bind' | tee -a /etc/fstab\n",
                     "echo '/mnt/var/log/mongodb /var/log/mongodb   none bind' | tee -a /etc/fstab\n",

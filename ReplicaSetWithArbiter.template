@@ -187,7 +187,7 @@
                     "while [ ! -e /dev/sdh8 ]; do echo waiting for /dev/sdh8 to attach; sleep 10; done\n",
 
                     "apt-get install -y mongodb-10gen > /tmp/yum-mongo.log 2>&1\n",
-                    "service mongodb stop\n"
+                    "service mongodb stop\n",
 
                     "## Create RAID10 and persist configuration\n",
                     "mdadm --verbose --create /dev/md0 --level=10 --chunk=256 --raid-devices=8 /dev/sdh1 /dev/sdh2 /dev/sdh3 /dev/sdh4 /dev/sdh5 /dev/sdh6 /dev/sdh7 /dev/sdh8 > /tmp/mdadm.log 2>&1\n",
