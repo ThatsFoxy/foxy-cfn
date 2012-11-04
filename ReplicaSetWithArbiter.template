@@ -250,7 +250,7 @@
 
                     "## Create replica set configuration\n",
                     "## The following is only needed on the PRIMARY\n",
-                    "HOSTNAME=`/usr/bin/curl -s http://169.254.169.254/latest/meta-data/public-hostname`\n",
+                    "HOSTNAME=`curl -s http://169.254.169.254/latest/meta-data/public-hostname`\n",
 
                     "cat <<EOF > /tmp/replicaSetConfigInit.js\n",
                     "config = {_id: \"", { "Ref" : "ReplicaSetName" } ,"\", members : [",
