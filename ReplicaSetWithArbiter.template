@@ -171,7 +171,7 @@
                     "}\n",
 
                     "## Initialize CloudFormation bits\n",
-                    "/opt/aws/bin/cfn-init -v -s ", { "Ref" : "AWS::StackName" }, " -r MongoPrimary",
+                    "cfn-init -v -s ", { "Ref" : "AWS::StackName" }, " -r MongoPrimary",
                     "   --access-key ",  { "Ref" : "AccessKey" },
                     "   --secret-key ", {"Fn::GetAtt": ["AccessKey", "SecretAccessKey"]},
                     "   --region ", { "Ref" : "AWS::Region" }, " > /tmp/cfn-init.log 2>&1 || error_exit $(</tmp/cfn-init.log)\n",
