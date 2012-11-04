@@ -352,7 +352,6 @@
 
         "WaitConditionMongoSecondary" : {
             "Type" : "AWS::CloudFormation::WaitCondition",
-            "DependsOn" : ["MongoSecondaryVolumeMount8", "MongoSecondaryVolumeMount7", "MongoSecondaryVolumeMount6", "MongoSecondaryVolumeMount5", "MongoSecondaryVolumeMount4", "MongoSecondaryVolumeMount3", "MongoSecondaryVolumeMount2", "MongoSecondaryVolumeMount1"],
             "DependsOn" : "MongoSecondary",
             "Properties" : {
                 "Handle" : { "Ref" : "WaitHandleMongoSecondary" },

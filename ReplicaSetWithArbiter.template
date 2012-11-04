@@ -273,7 +273,7 @@
                     "/usr/bin/mongo /tmp/replicaSetConfigInit.js > /tmp/replica-setup.log 2>&1\n",
 
                     "## CloudFormation signal that setup is complete\n",
-                    "cfn-signal -e 0 -r \"MongoPrimary setup complete\" '", { "Ref" : "WaitHandleMongoPrimary" }, "'\n"
+                    "cfn-signal -e $? -r 'MongoPrimary setup complete' '", { "Ref" : "WaitHandleMongoPrimary" }, "'\n"
                 ] ] } }
             }
         },
@@ -421,7 +421,6 @@
 
         "WaitConditionMongoPrimary" : {
             "Type" : "AWS::CloudFormation::WaitCondition",
-            "DependsOn" : ["MongoPrimaryVolumeMount8", "MongoPrimaryVolumeMount7", "MongoPrimaryVolumeMount6", "MongoPrimaryVolumeMount5", "MongoPrimaryVolumeMount4", "MongoPrimaryVolumeMount3", "MongoPrimaryVolumeMount2", "MongoPrimaryVolumeMount1"],
             "DependsOn" : "MongoPrimary",
             "Properties" : {
                 "Handle" : { "Ref" : "WaitHandleMongoPrimary" },
