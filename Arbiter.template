@@ -54,7 +54,7 @@
         },
 
         "RegionImageZone" : {
-            "us-east-1"      : { "64" : "ami-a29943cb", "64HVM" : "ami-e965ba80" },
+            "us-east-1"      : { "64" : "ami-3d4ff254", "64HVM" : "ami-e965ba80" },
             "us-west-2"      : { "64" : "ami-20800c10", "64HVM" : "NOT_YET_SUPPORTED" },
             "us-west-1"      : { "64" : "ami-87712ac2", "64HVM" : "NOT_YET_SUPPORTED" },
             "eu-west-1"      : { "64" : "ami-e1e8d395", "64HVM" : "NOT_YET_SUPPORTED" },
