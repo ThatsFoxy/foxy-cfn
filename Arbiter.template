@@ -71,20 +71,6 @@
                 "AWS::CloudFormation::Init" : {
                     "config" : {
                         "packages" : {
-                            "apt" : {
-                                "mdadm" : [],
-                                "sysstat" : []
-                            }
-                        },
-                        "files" : {
-                            "/etc/apt/sources.list.d/10gen.list" : {
-                                "content" : { "Fn::Join" : ["", [
-                                    "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen\n"
-                                ] ] },
-                                "mode" : "000644",
-                                "owner" : "root",
-                                "group" : "root"
-                            }
                         }
                     }
                 }
@@ -102,8 +88,6 @@
                 "KeyName" : { "Ref" : "KeyName" },
                 "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
                     "#!/bin/bash\n",
-                    "apt-get -y install python-setuptools ",
-                    "easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
 
                     "## Error reporting helper function\n",
                     "function error_exit\n",
@@ -112,14 +96,23 @@
                     "   exit 1\n",
                     "}\n",
 
+                    "## add mongo gpg key\n",
+                    "apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10 >> /tmp/cfn-init.log 2>&1\n",
+                    "echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' >> /etc/apt/sources.list.d/10gen.list\n",
+
+                    "## update package list\n",
+                    "apt-get -y update >> /tmp/cfn-init.log 2>&1\n",
+                    "DEBIAN_FRONTEND=noninteractive apt-get -y install mdadm sysstat lvm2 mongodb-10gen >> /tmp/apt.log 2>&1\n",
+                    "service mongodb stop\n",
+
+                    "apt-get -y install python-setuptools ",
+                    "easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
+
                     "## Initialize CloudFormation bits\n",
                     "cfn-init -v -s ", { "Ref" : "AWS::StackName" }, " -r MongoArbiter",
                     "   --access-key ",  { "Ref" : "AccessKeyId" },
                     "   --secret-key ", {"Ref": "SecretAccessKey" },
                     "   --region ", { "Ref" : "AWS::Region" }, " > /tmp/cfn-init.log 2>&1 || error_exit $(</tmp/cfn-init.log)\n",
-
-                    "apt-get install -y mongodb-10gen > /tmp/yum-mongo.log 2>&1\n",
-                    "service mongodb stop\n",
 
                     "echo '/mnt/var/lib/mongodb /var/lib/mongodb   none bind' | tee -a /etc/fstab\n",
                     "echo '/mnt/var/log/mongodb /var/log/mongodb   none bind' | tee -a /etc/fstab\n",

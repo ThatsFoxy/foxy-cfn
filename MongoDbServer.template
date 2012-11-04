@@ -78,20 +78,6 @@
                 "AWS::CloudFormation::Init" : {
                     "config" : {
                         "packages" : {
-                            "apt" : {
-                                "mdadm" : [],
-                                "sysstat" : []
-                            }
-                        },
-                        "files" : {
-                            "/etc/apt/sources.list.d/10gen.list" : {
-                                "content" : { "Fn::Join" : ["", [
-                                    "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen\n"
-                                ] ] },
-                                "mode" : "000644",
-                                "owner" : "root",
-                                "group" : "root"
-                            }
                         }
                     }
                 }
@@ -109,8 +95,6 @@
             ],
                 "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
                     "#!/bin/bash\n",
-                    "apt-get -y install python-setuptools ",
-                    "easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
 
                     "## Error reporting helper function\n",
                     "function error_exit\n",
@@ -118,6 +102,18 @@
                     "  cfn-signal -e 1 -r \"$1\" '", { "Ref" : "WaitHandleMongoSecondary" }, "'\n",
                     "   exit 1\n",
                     "}\n",
+
+                    "## add mongo gpg key\n",
+                    "apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10 >> /tmp/cfn-init.log 2>&1\n",
+                    "echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' >> /etc/apt/sources.list.d/10gen.list\n",
+
+                    "## update package list\n",
+                    "apt-get -y update >> /tmp/cfn-init.log 2>&1\n",
+                    "DEBIAN_FRONTEND=noninteractive apt-get -y install mdadm sysstat lvm2 mongodb-10gen >> /tmp/apt.log 2>&1\n",
+                    "service mongodb stop\n",
+
+                    "apt-get -y install python-setuptools ",
+                    "easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
 
                     "## Initialize CloudFormation bits\n",
                     "cfn-init -v -s ", { "Ref" : "AWS::StackName" }, " -r MongoSecondary",
@@ -134,9 +130,6 @@
                     "while [ ! -e /dev/xvdh6 ]; do echo waiting for /dev/xvdh6 to attach; sleep 10; done\n",
                     "while [ ! -e /dev/xvdh7 ]; do echo waiting for /dev/xvdh7 to attach; sleep 10; done\n",
                     "while [ ! -e /dev/xvdh8 ]; do echo waiting for /dev/xvdh8 to attach; sleep 10; done\n",
-
-                    "apt-get install -y mongodb-10gen > /tmp/yum-mongo.log 2>&1\n",
-                    "service mongodb stop\n",
 
                     "## Create RAID10 and persist configuration\n",
                     "mdadm --verbose --create /dev/md0 --level=10 --chunk=256 --raid-devices=8 /dev/xvdh1 /dev/xvdh2 /dev/xvdh3 /dev/xvdh4 /dev/xvdh5 /dev/xvdh6 /dev/xvdh7 /dev/xvdh8 > /tmp/mdadm.log 2>&1\n",
