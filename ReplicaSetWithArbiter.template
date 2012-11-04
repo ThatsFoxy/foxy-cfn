@@ -421,6 +421,7 @@
 
         "WaitConditionMongoPrimary" : {
             "Type" : "AWS::CloudFormation::WaitCondition",
+            "DependsOn" : ["MongoPrimaryVolumeMount8", "MongoPrimaryVolumeMount7", "MongoPrimaryVolumeMount6", "MongoPrimaryVolumeMount5", "MongoPrimaryVolumeMount4", "MongoPrimaryVolumeMount3", "MongoPrimaryVolumeMount2", "MongoPrimaryVolumeMount1"],
             "DependsOn" : "MongoPrimary",
             "Properties" : {
                 "Handle" : { "Ref" : "WaitHandleMongoPrimary" },
