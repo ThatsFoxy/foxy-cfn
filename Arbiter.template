@@ -108,7 +108,7 @@
                     "## Error reporting helper function\n",
                     "function error_exit\n",
                     "{\n",
-                    "   /opt/aws/bin/cfn-signal -e 1 -r \"$1\" '", { "Ref" : "WaitHandleMongoArbiter" }, "'\n",
+                    "  cfn-signal -e 1 -r \"$1\" '", { "Ref" : "WaitHandleMongoArbiter" }, "'\n",
                     "   exit 1\n",
                     "}\n",
 
@@ -130,7 +130,7 @@
                     "service mongodb start > /tmp/mongod-start.log 2>&1\n",
 
                     "## CloudFormation signal that setup is complete\n",
-                    "/opt/aws/bin/cfn-signal -e 0 -r \"MongoPrimary setup complete\" '", { "Ref" : "WaitHandleMongoArbiter" }, "'\n"
+                    "cfn-signal -e 0 -r \"MongoPrimary setup complete\" '", { "Ref" : "WaitHandleMongoArbiter" }, "'\n"
                 ] ] } }
             }
         },
