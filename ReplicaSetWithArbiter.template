@@ -273,7 +273,7 @@
                     "/usr/bin/mongo /tmp/replicaSetConfigInit.js > /tmp/replica-setup.log 2>&1\n",
 
                     "## CloudFormation signal that setup is complete\n",
-                    "cfn-signal -e $? -r 'MongoPrimary setup complete' '", { "Ref" : "WaitHandleMongoPrimary" }, "'\n"
+                    "cfn-signal -e 0 -r 'MongoPrimary setup complete' '", { "Ref" : "WaitHandleMongoPrimary" }, "'\n"
                 ] ] } }
             }
         },

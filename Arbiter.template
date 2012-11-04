@@ -130,7 +130,7 @@
                     "service mongodb start > /tmp/mongod-start.log 2>&1\n",
 
                     "## CloudFormation signal that setup is complete\n",
-                    "cfn-signal -e $? -r 'MongoPrimary setup complete' '", { "Ref" : "WaitHandleMongoArbiter" }, "'\n"
+                    "cfn-signal -e 0 -r 'MongoPrimary setup complete' '", { "Ref" : "WaitHandleMongoArbiter" }, "'\n"
                 ] ] } }
             }
         },
