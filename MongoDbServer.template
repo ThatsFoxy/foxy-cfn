@@ -19,7 +19,7 @@
         "VolumeSize" : {
             "Description" : "Volume size for each EBS volume",
             "Type" : "Number",
-            "Default" : "10"
+            "Default" : "32"
         },
 
         "ReplicaSetName" : {
