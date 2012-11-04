@@ -131,8 +131,7 @@
                         "packages" : {
                             "apt" : {
                                 "mdadm" : [],
-                                "sysstat" : [],
-                                "python-setuptools" : []
+                                "sysstat" : []
                             }
                         },
                         "files" : {
@@ -161,6 +160,7 @@
                 "KeyName" : { "Ref" : "KeyName" },
                 "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
                     "#!/bin/bash\n",
+                    "apt-get -y install python-setuptools ",
                     "easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
 
                     "## Error reporting helper function\n",
